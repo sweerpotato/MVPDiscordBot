@@ -137,6 +137,10 @@ namespace MVPDiscordBot.ImageParsing
                 {
                     mvpTimeStamp = mvpTimeStampMatch.Value;
                 }
+                else if (!lowerChatMessage.Contains("extend"))
+                {
+                    continue;
+                }
 
                 Match channelRegexMatch = channelRegex.Match(lowerChatMessage);
                 string channel = "Unknown";
@@ -167,9 +171,13 @@ namespace MVPDiscordBot.ImageParsing
                 {
                     location = "Cernium";
                 }
+                else if (lowerChatMessage.Contains("nameless"))
+                {
+                    location = "Nameless Town";
+                }
                 else if (lowerChatMessage.Contains("vanishing"))
                 {
-                    location = "Vanishing Journey";
+                    location = "Nameless Town";
                 }
                 else
                 {
