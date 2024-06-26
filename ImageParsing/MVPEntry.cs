@@ -51,14 +51,12 @@ namespace MVPDiscordBot.ImageParsing
         {
             return obj is MVPEntry entry &&
                 TimeStamp == entry.TimeStamp &&
-                MVPTime == entry.MVPTime &&
-                Location == entry.Location &&
-                Channel == entry.Channel;
+                MVPTime == entry.MVPTime;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(TimeStamp, MVPTime, Location, Channel);
+            return HashCode.Combine(TimeStamp, MVPTime);
         }
 
         public override string ToString()

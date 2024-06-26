@@ -86,7 +86,13 @@ namespace MVPDiscordBot.ImageParsing
                     continue;
                 }
 
-                if (line.Contains("All Party Friend Guild Alliance"))
+                bool breakCondition = line.Contains("All Party Friend Guild Alliance") ||
+                    line.Contains("All Party") ||
+                    line.Contains("Party Friend") ||
+                    line.Contains("Friend Guild") ||
+                    line.Contains("Guild Alliance");
+
+                if (breakCondition)
                 {
                     break;
                 }
@@ -155,6 +161,7 @@ namespace MVPDiscordBot.ImageParsing
 
                 if (lowerChatMessage.Contains("kerning") ||
                     lowerChatMessage.Contains("kernig") ||
+                    lowerChatMessage.Contains("kering") ||
                     lowerChatMessage.Contains("city"))
                 {
                     location = "Kerning City";
@@ -183,10 +190,11 @@ namespace MVPDiscordBot.ImageParsing
                 {
                     location = "Unknown";
                 }
-
+                
                 DateTime chatTimeStamp = DateTime.ParseExact(timeStampRegexMatch.Groups[1].Value, "HH:mm", CultureInfo.InvariantCulture);
+                DateTime combinedTimeStamp = DateTime.Today.AddHours(chatTimeStamp.Hour).AddMinutes(chatTimeStamp.Minute);
 
-                yield return new MVPEntry(chatTimeStamp, mvpTimeStamp, location, channel, chatMessage);
+                yield return new MVPEntry(combinedTimeStamp, mvpTimeStamp, location, channel, chatMessage);
             }
         }
     }
