@@ -2,8 +2,6 @@
 using MVPDiscordBot.ImageParsing;
 using MVPDiscordBot.MDBConstants;
 using MVPDiscordBot.ScreenCapturing;
-using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
 namespace DiscordBot
@@ -18,8 +16,6 @@ namespace DiscordBot
         
         public static async Task Main()
         {
-            await Task.Delay(3000);
-
             if (!Path.Exists(Constants.TESSDATA_PATH))
             {
                 Directory.CreateDirectory(Constants.TESSDATA_PATH);
@@ -35,11 +31,13 @@ namespace DiscordBot
 
             while (true)
             {
-                ScreenCapture.CaptureMaplestoryChat().Save(FULLSCREENSHOTPATH, System.Drawing.Imaging.ImageFormat.Png);
+                //TODO Embed the screenshot
+                string currentFullScreenshotPath = FULLSCREENSHOTPATH;
+                ScreenCapture.CaptureMaplestoryChat().Save(currentFullScreenshotPath, System.Drawing.Imaging.ImageFormat.Png);
 
                 try
                 {
-                    IEnumerable<string> chatMessages = ChatParser.ParseChatImage(FULLSCREENSHOTPATH);
+                    IEnumerable<string> chatMessages = ChatParser.ParseChatImage(currentFullScreenshotPath);
 
                     foreach (MVPEntry mvp in ChatParser.FilterMVPs(chatMessages))
                     {

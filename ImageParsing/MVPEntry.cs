@@ -2,7 +2,7 @@
 
 namespace MVPDiscordBot.ImageParsing
 {
-    internal class MVPEntry(DateTime timeStamp, string mvpTime, string location, string channel, string originalMessage)
+    internal class MVPEntry(DateTime timeStamp, DateTime? mvpTime, string location, string channel, string originalMessage)
     {
         public DateTime TimeStamp
         {
@@ -10,11 +10,11 @@ namespace MVPDiscordBot.ImageParsing
             private set;
         } = timeStamp;
 
-        public string MVPTime
+        public DateTime? MVPTime
         {
             get;
             private set;
-        } = mvpTime ?? throw new ArgumentNullException(nameof(mvpTime));
+        } = mvpTime;
 
         public string Location
         {
@@ -39,7 +39,7 @@ namespace MVPDiscordBot.ImageParsing
             EmbedBuilder embedBuilder = new();
 
             embedBuilder.AddField("Server time posted:", $"{TimeStamp:HH:mm}");
-            embedBuilder.AddField("MVP Time:", MVPTime);
+            embedBuilder.AddField("MVP Time:", $"{(MVPTime == null ? "Unknown" : $"{MVPTime:HH:mm}")}");
             embedBuilder.AddField("Location:", Location);
             embedBuilder.AddField("Channel:", Channel);
             embedBuilder.AddField("Interpreted message:", OriginalMessage);
@@ -61,7 +61,11 @@ namespace MVPDiscordBot.ImageParsing
 
         public override string ToString()
         {
-            return $"Server time posted: {TimeStamp:HH:mm}\nMVP Time: {MVPTime}\nLocation: {Location}\nChannel: {Channel}\nInterpreted message: {OriginalMessage}";
+            return $"Server time posted: {TimeStamp:HH:mm}\n" +
+                $"MVP Time: {(MVPTime == null ? "Unknown" : $"{MVPTime:HH:mm}")}\n" +
+                $"Location: {Location}\n" +
+                $"Channel: {Channel}\n" +
+                $"Interpreted message: {OriginalMessage}";
         }
     }
 }

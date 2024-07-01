@@ -8,7 +8,6 @@ namespace MVPDiscordBot.ImageParsing
 {
     internal static partial class ChatParser
     {
-        //TODO SK: Make better. Stop "mpe"
         /// <summary>
         /// Matches some indicators of an MVP being casted
         /// </summary>
@@ -123,6 +122,7 @@ namespace MVPDiscordBot.ImageParsing
             Regex timeStampRegex = TimeStampRegex();
             Regex channelRegex = ChannelRegex();
             Regex mvpTimeStampRegex = MVPTimeStampRegex();
+            TimeZoneInfo timeZoneInfo = TimeZoneInfo.Local;
 
             foreach (string chatMessage in chatMessages.
                 Where(message => mvpIndicatorRegex.IsMatch(message.ToLower()) &&
@@ -130,6 +130,10 @@ namespace MVPDiscordBot.ImageParsing
             {
                 string lowerChatMessage = chatMessage.ToLower();
                 Match timeStampRegexMatch = timeStampRegex.Match(lowerChatMessage);
+                DateTime serverTimeStamp = DateTime.SpecifyKind(
+                    DateTime.ParseExact(timeStampRegexMatch.Groups[1].Value, "HH:mm", CultureInfo.InvariantCulture),
+                    DateTimeKind.Utc);
+                DateTime convertedTimeStamp = serverTimeStamp.ToLocalTime();
 
                 if (!timeStampRegexMatch.Success)
                 {
@@ -137,11 +141,29 @@ namespace MVPDiscordBot.ImageParsing
                 }
 
                 Match mvpTimeStampMatch = mvpTimeStampRegex.Match(lowerChatMessage);
-                string mvpTimeStamp = "Unknown";
+                string mvpTimeStampString = "Unknown";
+                DateTime? mvpTimeStamp = null;
 
                 if (mvpTimeStampMatch.Success)
                 {
-                    mvpTimeStamp = mvpTimeStampMatch.Value;
+                    mvpTimeStampString = mvpTimeStampMatch.Value;
+
+                    if (!mvpTimeStampString.Contains(':'))
+                    {
+                        mvpTimeStampString = mvpTimeStampString.Insert(mvpTimeStampString.LastIndexOf('x') + 1, ":");
+                    }
+
+                    int extraHours = 0;
+
+                    if (mvpTimeStampString.Substring(mvpTimeStampString.Length - 2, 2) == "00")
+                    {
+                        extraHours = 1;
+                    }
+
+                    int hours = convertedTimeStamp.Hour + extraHours;
+
+                    mvpTimeStampString = mvpTimeStampString.Replace("xx", hours < 10 ? "0" + hours.ToString() : hours.ToString());
+                    mvpTimeStamp = DateTime.ParseExact(mvpTimeStampString, "HH:mm", CultureInfo.InvariantCulture);
                 }
                 else if (!lowerChatMessage.Contains("extend"))
                 {
@@ -191,8 +213,7 @@ namespace MVPDiscordBot.ImageParsing
                     location = "Unknown";
                 }
                 
-                DateTime chatTimeStamp = DateTime.ParseExact(timeStampRegexMatch.Groups[1].Value, "HH:mm", CultureInfo.InvariantCulture);
-                DateTime combinedTimeStamp = DateTime.Today.AddHours(chatTimeStamp.Hour).AddMinutes(chatTimeStamp.Minute);
+                DateTime combinedTimeStamp = DateTime.Today.AddHours(serverTimeStamp.Hour).AddMinutes(serverTimeStamp.Minute);
 
                 yield return new MVPEntry(combinedTimeStamp, mvpTimeStamp, location, channel, chatMessage);
             }
