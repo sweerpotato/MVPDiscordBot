@@ -1,4 +1,5 @@
 ﻿using Discord;
+using MVPDiscordBot.MDBConstants;
 
 namespace MVPDiscordBot.ImageParsing
 {
@@ -38,11 +39,12 @@ namespace MVPDiscordBot.ImageParsing
         {
             EmbedBuilder embedBuilder = new();
 
-            embedBuilder.AddField("Server time posted:", $"{TimeStamp:HH:mm}");
             embedBuilder.AddField("MVP Time:", $"{(MVPTime == null ? "Unknown" : $"{MVPTime:HH:mm}")}");
+            embedBuilder.AddField("Server time posted:", $"{TimeStamp:HH:mm}");
             embedBuilder.AddField("Location:", Location);
             embedBuilder.AddField("Channel:", Channel);
             embedBuilder.AddField("Interpreted message:", OriginalMessage);
+            embedBuilder.WithImageUrl("attachment://" + Path.GetFileName(Constants.FULLSCREENSHOTPATH));
 
             return embedBuilder.Build();
         }

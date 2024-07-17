@@ -53,10 +53,10 @@ namespace MVPDiscordBot.ScreenCapturing
             Rect rectangle = new();
             GetWindowRect(windowHandle, ref rectangle);
 
-            Rectangle screenBounds = new(rectangle.Left,
-                rectangle.Top,
-                rectangle.Right - rectangle.Left,
-                rectangle.Bottom - rectangle.Top);
+            Rectangle screenBounds = new(rectangle.Left + 3,
+                rectangle.Top + 220,
+                rectangle.Right - 20 - rectangle.Left,
+                (rectangle.Bottom - 658) - (rectangle.Top));
             Bitmap bitmap = new(screenBounds.Width, screenBounds.Height);
 
             using (Graphics graphics = Graphics.FromImage(bitmap))
@@ -67,11 +67,16 @@ namespace MVPDiscordBot.ScreenCapturing
             return bitmap;
         }
 
-        public static Bitmap CaptureMaplestoryChat()
+        public static Bitmap? CaptureMaplestoryChat()
         {
             nint maplestoryChatHandle = IntPtr.Zero;
             int minWidth = Int32.MaxValue;
             List<WindowStruct> maplestoryWindows = GetMaplestoryWindows();
+
+            if (maplestoryWindows.Count != 2)
+            {
+                return null;
+            }
 
             foreach (WindowStruct winStruct in maplestoryWindows)
             {

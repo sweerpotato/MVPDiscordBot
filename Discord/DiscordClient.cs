@@ -33,14 +33,16 @@ namespace MVPDiscordBot.Discord
 
         public async Task SendMessage(MVPEntry mvpEntry)
         {
-            //SocketGuild guild = _Client.GetGuild(1253041928765702268);
-            //IReadOnlyCollection<RestThreadChannel> threads = await guild.
-            //    GetTextChannel(1253042028535742486).
-            //    GetActiveThreadsAsync();
+            //swecord
+            ulong guildId = 405323062859530240;
+            ulong textChannelId = 909504001765150801;
+            //test
+            //ulong guildId = 1253041928765702268;
+            //ulong textChannelId = 1253042028535742486;
             _ClientReady.WaitOne();
 
-            SocketGuild guild = _Client.GetGuild(405323062859530240);
-            SocketTextChannel textChannel = guild.GetTextChannel(909504001765150801);
+            SocketGuild guild = _Client.GetGuild(guildId);
+            SocketTextChannel textChannel = guild.GetTextChannel(textChannelId);
             IReadOnlyCollection<RestThreadChannel> threads = await textChannel.GetActiveThreadsAsync();
             int waitCount = 0;
 
@@ -65,7 +67,7 @@ namespace MVPDiscordBot.Discord
                 throw new NullReferenceException($"{nameof(thread)} can't be found");
             }
 
-            await thread.SendMessageAsync(mvpRole.Mention, false, mvpEntry.Embed());
+            await thread.SendFileAsync(MDBConstants.Constants.FULLSCREENSHOTPATH, mvpRole.Mention, false, mvpEntry.Embed());
         }
 
         private Task OnClientReady()

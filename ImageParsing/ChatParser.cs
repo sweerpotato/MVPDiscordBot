@@ -11,13 +11,13 @@ namespace MVPDiscordBot.ImageParsing
         /// <summary>
         /// Matches some indicators of an MVP being casted
         /// </summary>
-        [GeneratedRegex(@"(mvp|\d/\d|xx:\d\d|xx\d\d|extend)")]
+        [GeneratedRegex(@"(mvp|\d/\d|\sxx:\d\d|\sxx\d\d|\sx\d\d|\sx:\d\d|extend)")]
         private static partial Regex MVPIndicatorRegex();
 
         /// <summary>
         /// Matches some variations of different MVP timestamps - xx:00 etc
         /// </summary>
-        [GeneratedRegex(@"(xx:?\d\d)/?(xx:?\d\d)?")]
+        [GeneratedRegex(@"(x+:?\d\d)/?(x+:?\d\d)?")]
         private static partial Regex MVPTimeStampRegex();
 
         /// <summary>
@@ -63,50 +63,10 @@ namespace MVPDiscordBot.ImageParsing
                 ocrText = page.GetText().Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             }
 
-            bool startFound = false;
-            int smegaStartIndex = 0;
-            int smegaEndIndex = 0;
-
-            foreach (string line in ocrText)
-            {
-                ++smegaEndIndex;
-
-                if (!startFound && line != "Mega")
-                {
-                    ++smegaStartIndex;
-
-                    continue;
-                }
-                else if (line == "Mega")
-                {
-                    ++smegaStartIndex;
-                    startFound = true;
-
-                    continue;
-                }
-
-                bool breakCondition = line.Contains("All Party Friend Guild Alliance") ||
-                    line.Contains("All Party") ||
-                    line.Contains("Party Friend") ||
-                    line.Contains("Friend Guild") ||
-                    line.Contains("Guild Alliance");
-
-                if (breakCondition)
-                {
-                    break;
-                }
-            }
-
-            if (smegaStartIndex == smegaEndIndex)
-            {
-                yield return String.Empty;
-            }
-
-            string concatText = String.Join("", ocrText.Skip(smegaStartIndex).Take(smegaEndIndex - smegaStartIndex - 1));
-            //Groups all chat messages independent of newlines
             Regex chatMessageRegex = ChatMessageRegex();
 
-            foreach (Match match in chatMessageRegex.Matches(concatText))
+            //Groups all chat messages independent of newlines
+            foreach (Match match in chatMessageRegex.Matches(String.Join("", ocrText)))
             {
                 yield return match.Value;
             }
@@ -126,6 +86,7 @@ namespace MVPDiscordBot.ImageParsing
 
             foreach (string chatMessage in chatMessages.
                 Where(message => mvpIndicatorRegex.IsMatch(message.ToLower()) &&
+                    mvpIndicatorRegex.Matches(message.ToLower()).Count > 1 &&
                     !message.Contains("mpe", StringComparison.CurrentCultureIgnoreCase)))
             {
                 string lowerChatMessage = chatMessage.ToLower();
@@ -140,7 +101,7 @@ namespace MVPDiscordBot.ImageParsing
                     continue;
                 }
 
-                Match mvpTimeStampMatch = mvpTimeStampRegex.Match(lowerChatMessage);
+                Match mvpTimeStampMatch = mvpTimeStampRegex.Match(lowerChatMessage[7..]);
                 string mvpTimeStampString = "Unknown";
                 DateTime? mvpTimeStamp = null;
 
@@ -162,8 +123,23 @@ namespace MVPDiscordBot.ImageParsing
 
                     int hours = convertedTimeStamp.Hour + extraHours;
 
+                    if (!mvpTimeStampString.Contains("xx") && mvpTimeStampString.Contains('x'))
+                    {
+                        mvpTimeStampString = mvpTimeStampString.Insert(mvpTimeStampString.IndexOf('x'), "x");
+                    }
+
                     mvpTimeStampString = mvpTimeStampString.Replace("xx", hours < 10 ? "0" + hours.ToString() : hours.ToString());
-                    mvpTimeStamp = DateTime.ParseExact(mvpTimeStampString, "HH:mm", CultureInfo.InvariantCulture);
+
+                    try
+                    {
+                        mvpTimeStamp = DateTime.ParseExact(mvpTimeStampString, "HH:mm", CultureInfo.InvariantCulture);
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"Could not parse {nameof(mvpTimeStamp)} with " +
+                            $"{nameof(mvpTimeStampString)}: {mvpTimeStampString}" +
+                            $" and message {lowerChatMessage}");
+                    }
                 }
                 else if (!lowerChatMessage.Contains("extend"))
                 {
@@ -200,13 +176,21 @@ namespace MVPDiscordBot.ImageParsing
                 {
                     location = "Cernium";
                 }
-                else if (lowerChatMessage.Contains("nameless"))
+                else if (lowerChatMessage.Contains("ludi"))
+                {
+                    location = "Ludibrium (what the fuck)";
+                }
+                else if (lowerChatMessage.Contains("ellinia"))
+                {
+                    location = "Ellinia";
+                }
+                else if (lowerChatMessage.Contains("nameless") || lowerChatMessage.Contains("vanishing"))
                 {
                     location = "Nameless Town";
                 }
-                else if (lowerChatMessage.Contains("vanishing"))
+                else if (lowerChatMessage.Contains("lith harbor"))
                 {
-                    location = "Nameless Town";
+                    location = "Lith Harbor";
                 }
                 else
                 {

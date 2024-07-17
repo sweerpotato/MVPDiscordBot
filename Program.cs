@@ -2,6 +2,8 @@
 using MVPDiscordBot.ImageParsing;
 using MVPDiscordBot.MDBConstants;
 using MVPDiscordBot.ScreenCapturing;
+using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
 namespace DiscordBot
@@ -9,9 +11,6 @@ namespace DiscordBot
     [SupportedOSPlatform("windows")]
     public partial class Program
     {
-        private static readonly string FILEPATH = Environment.GetEnvironmentVariable("SCREENSHOT_DIRECTORY", EnvironmentVariableTarget.User)
-            ?? throw new Exception("SCREENSHOT_DIRECTORY missing from environment variables");
-        private static readonly string FULLSCREENSHOTPATH = Path.Combine(FILEPATH, "chat.png");
         private static DiscordClient? _DiscordClient;
         
         public static async Task Main()
@@ -31,9 +30,21 @@ namespace DiscordBot
 
             while (true)
             {
-                //TODO Embed the screenshot
-                string currentFullScreenshotPath = FULLSCREENSHOTPATH;
-                ScreenCapture.CaptureMaplestoryChat().Save(currentFullScreenshotPath, System.Drawing.Imaging.ImageFormat.Png);
+                string currentFullScreenshotPath = Constants.FULLSCREENSHOTPATH;
+                Bitmap? screenCapture = ScreenCapture.CaptureMaplestoryChat();
+
+                if (screenCapture != null)
+                {
+                    screenCapture.Save(currentFullScreenshotPath, System.Drawing.Imaging.ImageFormat.Png);
+                }
+                else
+                {
+                    await Task.Delay(5000);
+                    continue;
+                }
+
+                //Uncomment to debug
+                //currentFullScreenshotPath = "C:\\Users\\sebas\\Desktop\\testmvpbot\\maplechat2.png";
 
                 try
                 {
@@ -47,6 +58,7 @@ namespace DiscordBot
                             mvpCache.Add(mvp);
                         }
                     }
+                    //await _DiscordClient.SendMessage(new MVPEntry(DateTime.Now, DateTime.Now, "Henesys", "Channel 1", "BABABA"));
                 }
                 catch (Exception ex)
                 {
